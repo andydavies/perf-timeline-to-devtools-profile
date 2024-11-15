@@ -1,0 +1,14 @@
+{
+    "name": "Custom Perf Track",
+    "version": "0.0.0.1",
+    "manifest_version": 3,
+    "description": "Creates a customer performance panel track with events from Performance Timeline added",
+    "content_scripts": [
+        {
+            "matches": [
+              "<all_urls>"
+            ],
+            "js": ["content-script.js"]
+        }
+    ]
+}
