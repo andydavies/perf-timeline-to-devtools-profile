@@ -18,3 +18,15 @@ Clone the repo, load as an unpacked extension in Chrome and then profile a page 
 
 ![Chrome Performance Panel with Custom Track showing Long Tasks, LoAF and LoAF script entries](images/example-output.png)
 
+
+## Notes
+
+There are some good reasons [why a script that contributes to a LoAF might not have attribution details](https://developer.chrome.com/docs/web-platform/long-animation-frames#script-attribution) but if you notice a main thread task that you think is missing a script attribution it's worth raising it with the Chrome team.
+
+There are a few issues around this that have already been raised and / or fixed:
+
+- LoAF doesn't currently attibute time spent in extension code, but there's a [spec issue that discusses that](https://github.com/w3c/long-animation-frames/issues/10)
+- There's a Chrome bug that's fixed in M133 where [Promise resolvers weren't attributed when there was a render already scheduled](https://issues.chromium.org/issues/378896421)
+
+
+
