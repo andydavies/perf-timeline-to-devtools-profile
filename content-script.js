@@ -1,16 +1,17 @@
 
 (function (){
 
-inpEventCount = 0;
+    // EventTiming / INP Track
+    eventTimingObserver = new PerformanceObserver((list) => {
 
-obs = new PerformanceObserver((list) => {
+        entries = list.getEntries();
+        for (const entry of entries) {
 
-    entries = list.getEntries();
-    for (const entry of entries) {
-        // debugger;
-
-        if(entry.entryType == 'event' && entry.interactionId > 0) {
-            inpEventCount++;
+            // Skip enties with no interationId
+            // Comment out to include
+            if (entry.interactionId == 0) {
+                continue;
+            }
 
             performance.measure('Input Delay', {
                 start: entry.startTime,
@@ -18,11 +19,12 @@ obs = new PerformanceObserver((list) => {
                 detail: {
                     devtools: {
                         dataType: 'track-entry',
-                        track: 'INP.' + inpEventCount,
+                        track: '' + entry.name,
                         trackGroup: 'INP',
                         color: 'primary-light',
                         tooltipText: 'Input Delay',
                         properties: [
+                            ['interactionId', '' + entry.interactionId],
                             ['name', '' + entry.name],
                             ['target', '' + entry.target]
                         ]
@@ -35,11 +37,12 @@ obs = new PerformanceObserver((list) => {
                 detail: {
                     devtools: {
                         dataType: 'track-entry',
-                        track: 'INP.' + inpEventCount,
+                        track: '' + entry.name,
                         trackGroup: 'INP',
                         color: 'primary',
                         tooltipText: 'Processing Time',
                         properties: [
+                            ['interactionId', '' + entry.interactionId],
                             ['name', '' + entry.name],
                             ['target', '' + entry.target]
                         ]
@@ -52,7 +55,7 @@ obs = new PerformanceObserver((list) => {
                 detail: {
                     devtools: {
                         dataType: 'track-entry',
-                        track: 'INP.' + inpEventCount,
+                        track: '' + entry.name,
                         trackGroup: 'INP',
                         color: 'primary-light',
                         tooltipText: 'Presentation Delay',
@@ -64,10 +67,18 @@ obs = new PerformanceObserver((list) => {
                     }
                 }
             });
-        }                 
-        else if (entry.entryType == 'long-animation-frame') {
+        }
+    });
 
-            // Set script entries before LoAF so Chrome can display them in the right order
+    eventTimingObserver.observe({ type: 'event', buffered: true, durationThreshold: 0});
+    
+    // LoAF / ScriptTiming Track
+    loafObserver = new PerformanceObserver((list) => {
+
+        entries = list.getEntries();
+        for (const entry of entries) {
+
+            // Set script entries before LoAF so Chrome will display them in the appropriate order
             for(const script of entry.scripts) {
                 performance.measure('script', {
                     start: script.startTime,
@@ -101,32 +112,45 @@ obs = new PerformanceObserver((list) => {
             }
 
             performance.measure('LoAF', {
-              start: entry.startTime,
-              end: entry.startTime + entry.duration, 
-              detail: {
-                devtools: {
-                  dataType: 'track-entry',
-                  track: 'LoAF',
-                  trackGroup: 'Performance Timeline',
-                  color: 'primary',
-                  tooltipText: 'LoAF',
-                    properties: [
-                        ['name', '' + entry.name],
-                        ['entryType', '' + entry.entryType],
-                        ['startTime', '' + entry.startTime],
-                        ['duration', '' + entry.duration],
-                        ['renderStart', '' + entry.renderStart],
-                        ['styleAndLayoutStart', '' + entry.styleAndLayoutStart],
-                        ['firstUIEventTimestamp', '' + entry.firstUIEventTimestamp],
-                        ['blockingDuration', '' + entry.blockingDuration]
-                    ]
+                start: entry.startTime,
+                end: entry.startTime + entry.duration, 
+                detail: {
+                    devtools: {
+                        dataType: 'track-entry',
+                        track: 'LoAF',
+                        trackGroup: 'Performance Timeline',
+                        color: 'primary',
+                        tooltipText: 'LoAF',
+                        properties: [
+                            ['name', '' + entry.name],
+                            ['entryType', '' + entry.entryType],
+                            ['startTime', '' + entry.startTime],
+                            ['duration', '' + entry.duration],
+                            ['renderStart', '' + entry.renderStart],
+                            ['styleAndLayoutStart', '' + entry.styleAndLayoutStart],
+                            ['firstUIEventTimestamp', '' + entry.firstUIEventTimestamp],
+                            ['blockingDuration', '' + entry.blockingDuration]
+                        ]
+                    }
                 }
-              }
             });
 
             if(entry.renderStart > 0) {
-                performance.measure('Rendering', {
+                performance.measure('Pre-Style & Layout', {
                     start: entry.renderStart,
+                    end: entry.styleAndLayoutStart, 
+                    detail: {
+                        devtools: {
+                            dataType: 'track-entry',
+                            track: 'LoAF',
+                            trackGroup: 'Performance Timeline',
+                            color: 'secondary-light',
+                            tooltipText: 'Pre-Style & Layout'
+                        }
+                    }
+                });
+                performance.measure('Style & Layout', {
+                    start: entry.styleAndLayoutStart,
                     end: entry.startTime + entry.duration, 
                     detail: {
                         devtools: {
@@ -134,15 +158,23 @@ obs = new PerformanceObserver((list) => {
                             track: 'LoAF',
                             trackGroup: 'Performance Timeline',
                             color: 'secondary-light',
-                            tooltipText: 'Rendering'
+                            tooltipText: 'Style & Layout'
                         }
                     }
                 });
             }
-  
+
         }
-        else if (entry.entryType == 'longtask') {
-        
+    });
+
+    loafObserver.observe({ type: 'long-animation-frame', buffered: true, durationThreshold: 0});
+
+    // Long Tasks Track
+    longTaskObserver = new PerformanceObserver((list) => {
+
+        entries = list.getEntries();
+        for (const entry of entries) {
+
             performance.measure('Long Task', {
                 start: entry.startTime,
                 end: entry.startTime + entry.duration, 
@@ -157,7 +189,15 @@ obs = new PerformanceObserver((list) => {
                 }
             });
         }
-        else if (entry.entryType == 'largest-contentful-paint') {
+    });
+
+    longTaskObserver.observe({ type: 'longtask', buffered: true, durationThreshold: 0});
+
+    // LCP Track
+    lcpObserver = new PerformanceObserver((list) => {
+
+        entries = list.getEntries();
+        for (const entry of entries) {
 
             performance.mark('LCP', {
                 start: entry.startTime,
@@ -172,16 +212,13 @@ obs = new PerformanceObserver((list) => {
                         ['size', '' + entry.size],
                         ['element', '' + entry.element],
                         ['URL', '' + entry.url]
-                      ],
+                    ],
                     }
                 }
             });
         }
-    }
-});
+    });
 
-for (const type of ['event', 'largest-contentful-paint', 'long-animation-frame', 'longtask']) {
-    obs.observe({ type, buffered: true, durationThreshold: 0, includeSoftNavigationObservations: true });
-}
+    lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true, durationThreshold: 0});
 
 })();
