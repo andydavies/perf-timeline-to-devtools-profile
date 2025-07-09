@@ -10,7 +10,7 @@
             // Skip enties with no interationId
             // Comment out to include
             if (entry.interactionId == 0) {
-                continue;
+                 continue;
             }
 
             performance.measure('Input Delay', {
@@ -86,7 +86,7 @@
                     detail: {
                         devtools: {
                             dataType: 'track-entry',
-                            track: 'LoAF',
+                            track: 'LoAFs',
                             trackGroup: 'Performance Timeline',
                             color: 'secondary',
                             tooltipText: script.sourceURL,
@@ -117,7 +117,7 @@
                 detail: {
                     devtools: {
                         dataType: 'track-entry',
-                        track: 'LoAF',
+                        track: 'LoAFs',
                         trackGroup: 'Performance Timeline',
                         color: 'primary',
                         tooltipText: 'LoAF',
@@ -142,7 +142,7 @@
                     detail: {
                         devtools: {
                             dataType: 'track-entry',
-                            track: 'LoAF',
+                            track: 'LoAFs',
                             trackGroup: 'Performance Timeline',
                             color: 'secondary-light',
                             tooltipText: 'Pre-Style & Layout'
@@ -155,7 +155,7 @@
                     detail: {
                         devtools: {
                             dataType: 'track-entry',
-                            track: 'LoAF',
+                            track: 'LoAFs',
                             trackGroup: 'Performance Timeline',
                             color: 'secondary-light',
                             tooltipText: 'Style & Layout'
@@ -181,7 +181,7 @@
                 detail: {
                     devtools: {
                     dataType: 'track-entry',
-                    track: 'Long Task',
+                    track: 'Long Tasks',
                     trackGroup: 'Performance Timeline',
                     color: 'primary',
                     tooltipText: 'Long Task'
@@ -220,5 +220,73 @@
     });
 
     lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true, durationThreshold: 0});
+
+    // Soft Navigations Track
+    softNavObserver = new PerformanceObserver((list) => {
+
+        entries = list.getEntries();
+        for (const entry of entries) {
+
+            performance.measure('Soft Navigation', {
+                start: entry.startTime,
+                end: Math.max(entry.paintTime, entry.presentationTime),
+                detail: {
+                    devtools: {
+                        dataType: 'track-entry',
+                        track: 'Soft Navigations',
+                        trackGroup: 'Performance Timeline',
+                        color: 'primary',
+                        tooltipText: 'Soft Navigation',
+                        properties: [
+                            ['name', '' + entry.name],
+                            ['entryType', '' + entry.entryType],
+                            ['startTime', '' + entry.startTime],
+                            ['paintTime', '' + entry.paintTime],
+                            ['presentationTime', '' + entry.presentationTime],
+                            ['duration', '' + entry.duration],
+                            ['navigationId', '' + entry.navigationId]
+                        ]
+                    }
+                }
+            });
+        }
+    });
+
+    softNavObserver.observe({ type: "soft-navigation", buffered: true, includeSoftNavigationObservations: true });
+
+    // LCP Track
+    icpObserver = new PerformanceObserver((list) => {
+
+        entries = list.getEntries();
+        for (const entry of entries) {
+
+            performance.mark('ICP', {
+                start: entry.startTime,
+                detail: {
+                    devtools: {
+                    dataType: 'track-entry',
+                    track: 'Interaction Contentful Paint',
+                    trackGroup: 'Performance Timeline',
+                    color: 'primary',
+                    tooltipText: 'ICP Candidate',
+                    properties: [
+                        ['size', '' + entry.size],
+                        ['element', '' + entry.element],
+                        ['URL', '' + entry.url],
+                        ['startTime', '' + entry.startTime],
+                        ['paintTime', '' + entry.paintTime],
+                        ['presentationTime', '' + entry.presentationTime],
+                        ['renderTime', '' + entry.render],
+                        ['duration', '' + entry.duration],
+                        ['navigationId', '' + entry.navigationId]
+                    ],
+                    }
+                }
+            });
+        }
+    });
+
+    icpObserver.observe({ type: 'interaction-contentful-paint', buffered: true, durationThreshold: 0});
+
 
 })();
