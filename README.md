@@ -10,6 +10,14 @@ Registers Performance Observers for the following Events and adds performance.ma
 - LCP
 - INP
 
+### Experimental Soft Navigation Support
+
+Enable these two flags in Chrome Canary:
+ - chrome://flags/#enable-experimental-web-platform-features
+ - chrome://flags/#soft-navigation-heuristics
+
+And then entries for Soft Navigations and Iteraction Contentful Paint should also be added when profiling SPA interactions
+
 ## Usage
 
 Clone the repo, load as an unpacked extension in Chrome and then profile a page using the performance panel
