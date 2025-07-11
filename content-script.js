@@ -286,7 +286,5 @@
         }
     });
 
-    icpObserver.observe({ type: 'interaction-contentful-paint', buffered: true, durationThreshold: 0});
-
-
+    icpObserver.observe({ type: "interaction-contentful-paint", buffered: true, includeSoftNavigationObservations: true });
 })();
