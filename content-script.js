@@ -128,6 +128,8 @@
                             ['duration', '' + entry.duration],
                             ['renderStart', '' + entry.renderStart],
                             ['styleAndLayoutStart', '' + entry.styleAndLayoutStart],
+                            ['paintTime', '' + entry?.paintTime],
+                            ['presentationTime', '' + entry?.presentationTime],
                             ['firstUIEventTimestamp', '' + entry.firstUIEventTimestamp],
                             ['blockingDuration', '' + entry.blockingDuration]
                         ]
@@ -241,8 +243,8 @@
                             ['name', '' + entry.name],
                             ['entryType', '' + entry.entryType],
                             ['startTime', '' + entry.startTime],
-                            ['paintTime', '' + entry.paintTime],
-                            ['presentationTime', '' + entry.presentationTime],
+                            ['paintTime', '' + entry?.paintTime],
+                            ['presentationTime', '' + entry?.presentationTime],
                             ['duration', '' + entry.duration],
                             ['navigationId', '' + entry.navigationId]
                         ]
