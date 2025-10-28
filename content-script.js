@@ -256,7 +256,7 @@
 
     softNavObserver.observe({ type: "soft-navigation", buffered: true, includeSoftNavigationObservations: true });
 
-    // LCP Track
+    // ICP Track
     icpObserver = new PerformanceObserver((list) => {
 
         entries = list.getEntries();
