@@ -1,5 +1,7 @@
-
+// IIFE to avoid polluting global scope
 (function (){
+
+    const showLongTasks = false;
 
     // EventTiming / INP Track
     eventTimingObserver = new PerformanceObserver((list) => {
@@ -137,6 +139,20 @@
                 }
             });
 
+            performance.measure('Work', {
+                start: entry.startTime,
+                end: entry.renderStart, 
+                detail: {
+                    devtools: {
+                        dataType: 'track-entry',
+                        track: 'LoAFs',
+                        trackGroup: 'Performance Timeline',
+                        color: 'secondary-light',
+                        tooltipText: 'Work'
+                    }
+                }
+            });
+
             if(entry.renderStart > 0) {
                 performance.measure('Pre-Style & Layout', {
                     start: entry.renderStart,
@@ -193,7 +209,9 @@
         }
     });
 
-    longTaskObserver.observe({ type: 'longtask', buffered: true, durationThreshold: 0});
+    if(showLongTasks) {
+        longTaskObserver.observe({ type: 'longtask', buffered: true, durationThreshold: 0});
+    }
 
     // LCP Track
     lcpObserver = new PerformanceObserver((list) => {
@@ -235,8 +253,8 @@
                 detail: {
                     devtools: {
                         dataType: 'track-entry',
-                        track: 'Soft Navigations',
-                        trackGroup: 'Performance Timeline',
+                        track: 'Soft Navigation',
+                        trackGroup: 'SPA',
                         color: 'primary',
                         tooltipText: 'Soft Navigation',
                         properties: [
@@ -268,7 +286,7 @@
                     devtools: {
                     dataType: 'track-entry',
                     track: 'Interaction Contentful Paint',
-                    trackGroup: 'Performance Timeline',
+                    trackGroup: 'SPA',
                     color: 'primary',
                     tooltipText: 'ICP Candidate',
                     properties: [
@@ -289,4 +307,26 @@
     });
 
     icpObserver.observe({ type: "interaction-contentful-paint", buffered: true, includeSoftNavigationObservations: true });
+
+        navigation.addEventListener("navigate", (event) => {
+        console.log('Navigate event observed:', JSON.stringify(event, null, 2));
+        console.log(event?.destination.url);
+        performance.mark('navigate', {
+            start: event.timeStamp,
+            detail: {
+                devtools: {
+                    dataType: 'track-entry',
+                    track: 'Navigation',
+                    trackGroup: 'SPA',
+                    color: 'primary',
+                    tooltipText: 'navigation',
+                    properties: [
+                        ['destination.url', '' + event?.destination.url],
+                        ['destination.sameDocument', '' + event?.destination.sameDocument]
+                    ]
+                }
+            }
+        });
+    });
+
 })();
