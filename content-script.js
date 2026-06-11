@@ -254,7 +254,7 @@
                     devtools: {
                         dataType: 'track-entry',
                         track: 'Soft Navigation',
-                        trackGroup: 'SPA',
+                        trackGroup: 'Native SPA',
                         color: 'primary',
                         tooltipText: 'Soft Navigation',
                         properties: [
@@ -274,7 +274,7 @@
 
     softNavObserver.observe({ type: "soft-navigation", buffered: true, includeSoftNavigationObservations: true });
 
-    // LCP Track
+    // ICP Track
     icpObserver = new PerformanceObserver((list) => {
 
         entries = list.getEntries();
@@ -286,7 +286,7 @@
                     devtools: {
                     dataType: 'track-entry',
                     track: 'Interaction Contentful Paint',
-                    trackGroup: 'SPA',
+                    trackGroup: 'Native SPA',
                     color: 'primary',
                     tooltipText: 'ICP Candidate',
                     properties: [
@@ -308,16 +308,70 @@
 
     icpObserver.observe({ type: "interaction-contentful-paint", buffered: true, includeSoftNavigationObservations: true });
 
-        navigation.addEventListener("navigate", (event) => {
-        console.log('Navigate event observed:', JSON.stringify(event, null, 2));
-        console.log(event?.destination.url);
+    const callback = (mutationList, observer) => {
+        for (const mutation of mutationList) {
+            if(mutation.addedNodes.length > 0) {
+                // Mark nodes added
+                performance.mark('Body Nodes Added', {
+                    start: performance.now,
+                    detail: {
+                        devtools: {
+                            dataType: 'track-entry',
+                            track: 'Body Nodes Added',
+                            trackGroup: 'Inferred SPA',
+                            color: 'primary',
+                            tooltipText: 'Body Nodes Added',
+                            properties: [
+                                ['addedNodes.length', '' + mutation.addedNodes.length],
+                            ]
+                        }
+                    }
+                });
+                // Schedule mark for next frame
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        performance.mark('Frame after nodes added', {
+                            start: performance.now(),
+                            detail: {
+                                devtools: {
+                                    dataType: 'track-entry',
+                                    track: 'rAF after Body Nodes Added',
+                                    trackGroup: 'Inferred SPA',
+                                    color: 'primary',
+                                    tooltipText: 'rAF after Body Nodes Added',
+                                    properties: [
+                                        ['addedNodes.length', '' + mutation.addedNodes.length],
+                                    ]   
+                                }
+                            }
+                        });
+                    });
+                });
+
+                // Stop listening for more mutations
+//                observer.disconnect();
+
+                // Don't need to wait for more mutations
+//                break;
+            }
+        }
+    }
+    
+    // Create an observer instance linked to the callback function
+    const mutationObserver = new MutationObserver(callback);
+    const targetNode = document.getElementsByTagName('body')[0];
+    
+    // Navigation API
+    navigation.addEventListener("navigate", (event) => {
+
+        // Mark navigation start
         performance.mark('navigate', {
             start: event.timeStamp,
             detail: {
                 devtools: {
                     dataType: 'track-entry',
                     track: 'Navigation',
-                    trackGroup: 'SPA',
+                    trackGroup: 'Inferred SPA',
                     color: 'primary',
                     tooltipText: 'navigation',
                     properties: [
@@ -327,6 +381,9 @@
                 }
             }
         });
+
+        // Start observing the target node for configured mutations
+        mutationObserver.observe(targetNode, { attributes: false, childList: true, subtree: true });
     });
 
 })();
